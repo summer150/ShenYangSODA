@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <title>DEMO ECHARTS COMPARATION</title>
+        <style>
+
+                .graph {
+                        width: 600px;
+                        height: 400px;
+                }
+
+        </style>
+</head>
+<body>
+
+<div id="main" class="graph"></div>
+
+<script src="./libs/jquery-1.11.1.min.js"></script>
+<script src="./libs/d3.v4.min.js"></script>
+<script src="./libs/echarts.js"></script>
+<script>
+
+        var myChart = echarts.init(document.getElementById('main'));
+
+        d3.csv("./data/沈阳市8月-10月污染物浓度日均值及空气质量情况.csv", function(error, csv) {
+
+                console.log(csv);
+
+                var darr = d3.nest()
+                        .key(function(d) {
+                                return d.DATE;
+                        })
+                        .object(csv);
+
+                var dateArr = d3.keys(darr).map(function (str) {
+		        var year = str.substring(0, str.indexOf('年'));
+		        var month = str.substring(str.indexOf('年') + 1, str.indexOf('月'));
+		        var day = str.substring(str.indexOf('月') + 1, str.indexOf('日'));
+		        return year + '/' + month + '/' + day + ' 2:00';
+	        });
+
+                var pm25 = new Array();
+                var aqi = new Array();
+                for(var idx in csv) {
+                	if(idx != "columns") {
+		                pm25.push(csv[idx].PM25);
+		                aqi.push(csv[idx].AQI);
+                        }
+                }
+
+                var valueTop = pm25;
+                var valueBottom = aqi;
+
+                console.log(dateArr);
+                console.log(valueTop);
+                console.log(valueBottom);
+
+                var option = {
+                        title : {
+                                text: '沈阳气象天气关系图',
+                                subtext: '数据来自沈阳SODA大赛',
+                                x: 'center',
+                                align: 'right'
+                        },
+                        grid: {
+                                bottom: 80
+                        },
+                        toolbox: {
+                                feature: {
+                                        dataZoom: {
+                                                yAxisIndex: 'none'
+                                        },
+                                        restore: {},
+                                        saveAsImage: {}
+                                }
+                        },
+                        tooltip : {
+                                trigger: 'axis',
+                                axisPointer: {
+                                        animation: false
+                                }
+                        },
+                        legend: {
+                                data:['AQI','PM2.5'],
+                                x: 'left'
+                        },
+                        dataZoom: [
+                                {
+                                        show: true,
+                                        realtime: true,
+                                        start: 0,
+                                        end: 100
+                                },
+                                {
+                                        type: 'inside',
+                                        realtime: true,
+                                        start: 0,
+                                        end: 100
+                                }
+                        ],
+                        xAxis : [
+                                {
+                                        type : 'category',
+                                        boundaryGap : false,
+                                        axisLine: {onZero: false},
+                                        data : dateArr.map(function (str) {
+                                                return str.replace(' ', '\n')
+                                        })
+                                }
+                        ],
+                        yAxis: [
+                                {
+                                        name: 'AQI',
+                                        type: 'value',
+                                        max: 500
+                                },
+                                {
+                                        name: 'PM2.5',
+                                        nameLocation: 'start',
+                                        max: 160,
+                                        type: 'value',
+                                        inverse: true
+                                }
+                        ],
+                        series: [
+                                {
+                                        name:'AQI',
+                                        type:'line',
+                                        animation: false,
+                                        areaStyle: {
+                                                normal: {}
+                                        },
+                                        lineStyle: {
+                                                normal: {
+                                                        width: 1
+                                                }
+                                        },
+                                        markArea: {
+                                                silent: true,
+                                                data: [[{
+                                                        xAxis: '2016/8/5\n10:00'
+                                                }, {
+                                                        xAxis: '2016/10/10\n2:00'
+                                                }]]
+                                        },
+                                        data: valueBottom
+                                },
+                                {
+                                        name:'PM2.5',
+                                        type:'line',
+                                        yAxisIndex:1,
+                                        animation: false,
+                                        areaStyle: {
+                                                normal: {}
+                                        },
+                                        lineStyle: {
+                                                normal: {
+                                                        width: 1
+                                                }
+                                        },
+                                        markArea: {
+                                                silent: true,
+                                                data: [[{
+                                                        xAxis: '2009/9/10\n7:00'
+                                                }, {
+                                                        xAxis: '2009/9/20\n7:00'
+                                                }]]
+                                        },
+                                        data: valueTop
+                                }
+                        ]
+                };
+
+                myChart.setOption(option);
+        });
+
+</script>
+</body>
+</html>
