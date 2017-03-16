@@ -261,14 +261,14 @@
                                                         width: 1
                                                 }
                                         },
-                                        markArea: {
-                                                silent: true,
-                                                data: [[{
-                                                        xAxis: '2016/8/5\n10:00'
-                                                }, {
-                                                        xAxis: '2016/10/30\n2:00'
-                                                }]]
-                                        }
+//                                        markArea: {
+//                                                silent: true,
+//                                                data: [[{
+//                                                        xAxis: '2016/8/5\n10:00'
+//                                                }, {
+//                                                        xAxis: '2016/10/30\n2:00'
+//                                                }]]
+//                                        }
 //                                        data: valueBottom
                                 },
                                 {
@@ -321,11 +321,10 @@
                 if(loaderIndex == loaderNumber) {
                         console.log("载入完成！");
 
-                        initMapOption();
-                        drawMap();
+//                        initMapOption();
+//                        drawMap();
 
                         initOption();
-
                         generateDateData();
                         generateTopData();
                         generateBottomData();
@@ -335,55 +334,86 @@
         }
 
         function generateDateData() {
+
+        	var csv = d3.nest()
+		        .key(function(d) {
+			        return d.NAME;
+		        })
+		        .object(csvWeather);
+
                 var darr = d3.nest()
                         .key(function(d) {
                                 return d.DATE;
                         })
-                        .object(csvAQI);
+                        .object(csv["康平"]);
 
-                dateArr = d3.keys(darr).map(function (str) {
-                        var year = str.substring(0, str.indexOf('年'));
-                        var month = str.substring(str.indexOf('年') + 1, str.indexOf('月'));
-                        var day = str.substring(str.indexOf('月') + 1, str.indexOf('日'));
-                        return year + '/' + month + '/' + day + ' 0:00';
+                var darr2 = new Array();
+                var start = new Date(2016, 0, 1);
+                var end = new Date(2016, 3, 1);
+                for(var key in darr) {
+			var dstr = stringToDate2(key);
+			var date = new Date(dstr);
+
+			if(date > start && date < end) {
+				darr2.push(key);
+			}
+		}
+
+                dateArr = darr2.map(function (str) {
+                        return stringToDate2(str);
                 });
         }
 
         function generateTopData() {
 
-                console.log(csvWeather);
-
-                var dsite = d3.nest()
-                        .key(function(d) {
-                                return d.NAME;
-                        })
-                        .object(csvWeather);
-
-                console.log(dsite["康平"]);
-                console.log(new Date(stringToDate2(dsite["康平"][0].DATE)));
 
 
-                objTop.name = "PM2.5";
+                objTop.name = "";
                 objTop.min = 0;
                 objTop.max = 500;
-//                objTop.data = pm25;
+//                objTop.data = darr2;
         }
 
         function generateBottomData() {
 
-                var pm25 = new Array();
-                var aqi = new Array();
-                for(var idx in csvAQI) {
-                        if(idx != "columns") {
-                                pm25.push(csvAQI[idx].PM25);
-                                aqi.push(csvAQI[idx].AQI);
-                        }
-                }
+//                var pm25 = new Array();
+//                var aqi = new Array();
+//                for(var idx in csvAQI) {
+//                        if(idx != "columns") {
+//                                pm25.push(csvAQI[idx].PM25);
+//                                aqi.push(csvAQI[idx].AQI);
+//                        }
+//                }
 
-                objBottom.name = "AQI";
+	        var csv = d3.nest()
+		        .key(function(d) {
+			        return d.NAME;
+		        })
+		        .object(csvWeather);
+
+	        var darr = d3.nest()
+		        .key(function(d) {
+			        return d.DATE;
+		        })
+		        .object(csv["康平"]);
+
+	        var darr2 = new Array();
+	        var start = new Date(2016, 0, 1);
+	        var end = new Date(2016, 3, 1);
+	        for(var key in darr) {
+		        var dstr = stringToDate2(key);
+		        var date = new Date(dstr);
+
+		        if(date > start && date < end) {
+//		        	console.log(darr[key][0]);
+			        darr2.push(darr[key][0].HOURLY_PREC);
+		        }
+	        }
+
+                objBottom.name = "每小时降雨量（mm）";
                 objBottom.min = 0;
-                objBottom.max = 160;
-                objBottom.data = aqi;
+                objBottom.max = 15;
+                objBottom.data = darr2;
         }
 
         function stringToDate1(str)             // 转换如下格式的日期数据：2016年8月12日
