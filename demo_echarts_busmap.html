@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <title>Demo Echarts Map</title>
+        <style>
+
+                .graph {
+                        width: 1200px;
+                        height: 700px;
+                }
+
+        </style>
+</head>
+<body>
+
+<div id="main" class="graph"></div>
+
+<script src="./libs/jquery-1.11.1.min.js"></script>
+<script src="./libs/d3.v4.min.js"></script>
+<script src="./libs/echarts.js"></script>
+<script src="./libs/bmap.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=9Bxc4I1CEm5doNqI05e4VCEyX0cDHM7w"></script>
+<script>
+
+        var myChart = echarts.init(document.getElementById('main'));
+
+        var csvBus;
+        var arrBus;
+
+        var option;
+
+        d3.csv("./data/20160119_166.csv", function(error, csv) {
+                csvBus = csv;
+
+                arrBus = new Array();
+                for(var i = 0; i < csvBus.length; i++) {
+                        var lon = parseFloat(csvBus[i].O_LONGITUDE) / 60;
+                        var lat = parseFloat(csvBus[i].O_LATITUDE) / 60;
+                        arrBus.push({name: csvBus[i].INDEX, value:[lon, lat, 1]});
+                }
+
+                console.log(arrBus);
+
+                option = {
+                        title: {
+                                text: '沈阳公交地图',
+                                subtext: 'data from ShenYang bus',
+                                left: 'center'
+                        },
+                        tooltip : {
+                                trigger: 'item'
+                        },
+                        bmap: {
+                                center: [123.4389730000, 43.8113390000],
+                                zoom: 12,
+                                roam: true,
+                                mapStyle: {
+                                        styleJson: [{
+                                                'featureType': 'water',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'color': '#d1d1d1'
+                                                }
+                                        }, {
+                                                'featureType': 'land',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'color': '#f3f3f3'
+                                                }
+                                        }, {
+                                                'featureType': 'railway',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'visibility': 'off'
+                                                }
+                                        }, {
+                                                'featureType': 'highway',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'color': '#fdfdfd'
+                                                }
+                                        }, {
+                                                'featureType': 'highway',
+                                                'elementType': 'labels',
+                                                'stylers': {
+                                                        'visibility': 'off'
+                                                }
+                                        }, {
+                                                'featureType': 'arterial',
+                                                'elementType': 'geometry',
+                                                'stylers': {
+                                                        'color': '#fefefe'
+                                                }
+                                        }, {
+                                                'featureType': 'arterial',
+                                                'elementType': 'geometry.fill',
+                                                'stylers': {
+                                                        'color': '#fefefe'
+                                                }
+                                        }, {
+                                                'featureType': 'poi',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'visibility': 'off'
+                                                }
+                                        }, {
+                                                'featureType': 'green',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'visibility': 'off'
+                                                }
+                                        }, {
+                                                'featureType': 'subway',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'visibility': 'off'
+                                                }
+                                        }, {
+                                                'featureType': 'manmade',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'color': '#d1d1d1'
+                                                }
+                                        }, {
+                                                'featureType': 'local',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'color': '#d1d1d1'
+                                                }
+                                        }, {
+                                                'featureType': 'arterial',
+                                                'elementType': 'labels',
+                                                'stylers': {
+                                                        'visibility': 'off'
+                                                }
+                                        }, {
+                                                'featureType': 'boundary',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'color': '#fefefe'
+                                                }
+                                        }, {
+                                                'featureType': 'building',
+                                                'elementType': 'all',
+                                                'stylers': {
+                                                        'color': '#d1d1d1'
+                                                }
+                                        }, {
+                                                'featureType': 'label',
+                                                'elementType': 'labels.text.fill',
+                                                'stylers': {
+                                                        'color': '#999999'
+                                                }
+                                        }]
+                                }
+                        },
+                        series : [
+                                {
+                                        name: 'Bus',
+                                        type: 'scatter',
+                                        coordinateSystem: 'bmap',
+                                        data: arrBus,
+                                        symbolSize: function (val) {
+                                                return val[2];
+                                        },
+                                        label: {
+                                                normal: {
+                                                        formatter: '{b}',
+                                                        position: 'right',
+                                                        show: false
+                                                },
+                                                emphasis: {
+                                                        show: true
+                                                }
+                                        },
+                                        itemStyle: {
+                                                normal: {
+                                                        color: 'purple'
+                                                }
+                                        }
+                                }
+//                                , {
+//                                        name: 'Top 5',
+//                                        type: 'effectScatter',
+//                                        coordinateSystem: 'bmap',
+//                                        data: convertData(data.sort(function (a, b) {
+//                                                return b.value - a.value;
+//                                        }).slice(0, 6)),
+//                                        symbolSize: function (val) {
+//                                                return val[2] / 10;
+//                                        },
+//                                        showEffectOn: 'render',
+//                                        rippleEffect: {
+//                                                brushType: 'stroke'
+//                                        },
+//                                        hoverAnimation: true,
+//                                        label: {
+//                                                normal: {
+//                                                        formatter: '{b}',
+//                                                        position: 'right',
+//                                                        show: true
+//                                                }
+//                                        },
+//                                        itemStyle: {
+//                                                normal: {
+//                                                        color: 'purple',
+//                                                        shadowBlur: 10,
+//                                                        shadowColor: '#333'
+//                                                }
+//                                        },
+//                                        zlevel: 1
+//                                }
+                        ]
+                };
+
+                console.log(arrBus);
+
+                myChart.setOption(option);
+        });
+
+</script>
+
+</body>
+</html>
