@@ -14,6 +14,7 @@
 </head>
 <body>
 <div id="bmap" class="map-graph"></div><br>
+<div id="dateinfo"></div>
 
 <script src="./libs/jquery-1.11.1.min.js"></script>
 <script src="./libs/d3.v4.min.js"></script>
@@ -28,7 +29,9 @@
         var loaderNumber = 1;
 
         var csvBus;
+        var arrBusAll;
         var arrBus;
+        var busIdx;
 
         var mapOption;
 
@@ -36,14 +39,28 @@
                 csvBus = csv;
 
                 arrBus = new Array();
+                arrBusAll = new Array();
+                busIdx = 3000;
                 var counter = 0
                 for(var i = 0; i < csvBus.length; i++) {
 
                         if(csvBus[i].O_BUSNAME == 940196) {
                                 var lon = parseFloat(csvBus[i].O_LONGITUDE) / 60;
                                 var lat = parseFloat(csvBus[i].O_LATITUDE) / 60;
-                                arrBus.push({name: csvBus[i].INDEX, value:[lon, lat, 10]});
+                                var newll = gcj02ToBd09(lon, lat);
+                                lon = newll[0];
+                                lat = newll[1];
+                                var date = stringToDate(csvBus[i].O_DATE, csvBus[i].O_TIME);
+                                //console.log(newll);
+                                arrBusAll.push({name: csvBus[i].INDEX, date:date, value:[lon, lat, 10]});
                         }
+
+//                        console.log("start sort");
+//                        arrBusAll.sort(function(a, b) {
+//                                return a.date -b.date;
+//                        });
+//
+//                        console.log("sort finish");
 
 //                        counter++;
 //                        if(counter == 10) {
@@ -51,16 +68,52 @@
 //                        }
                 }
 
+                window.setInterval(function() {
+
+                        $("#dateinfo").text("#" + busIdx + ": " + arrBusAll[busIdx].date.toString());
+//                        arrBus.push(arrBusAll[busIdx]);
+                        mapOption.series[0].data = [arrBusAll[busIdx]];
+                        myMapChart.setOption(mapOption);
+
+                        busIdx += 5;
+                }, 20);
+
                 console.log(arrBus.length);
 
                 onCSVLoaded();
         });
 
+        function stringToDate(str1, str2) {
+
+                var temp = str1.split("/");
+                var year = parseInt(temp[0]);
+                var month = parseInt(temp[1]) - 1;
+                var day = parseInt(temp[2]);
+
+                temp = str2.split(":");
+                var hours = parseInt(temp[0]);
+                var minutes = parseInt(temp[1]);
+                var seconds = parseInt(temp[2]);
+
+                return new Date(year, month, day, hours, minutes, seconds);
+        }
+
+        function gcj02ToBd09(lon, lat) {
+
+                var x = lon, y = lat;
+                var z = Math.sqrt(x * x + y * y) + 0.00002 * Math.sin(y * Math.PI);
+                var theta = Math.atan2(y, x) + 0.000003 * Math.cos(x * Math.PI);
+                var bd_lon = z * Math.cos(theta) + 0.0124;
+                var bd_lat = z * Math.sin(theta) + 0.0087;
+
+                return [bd_lon, bd_lat];
+        }
+
         function initMapOption() {
                 mapOption = {
                         bmap: {
                                 center: [123.4389730000, 41.8113390000],
-                                zoom: 12,
+                                zoom: 13,
                                 roam: true,
 //                                mapStyle: {
 //                                        styleJson: [{
@@ -200,7 +253,7 @@
                         console.log("载入完成！");
 
                         initMapOption();
-                        drawMap();
+//                        drawMap();
                 }
         }
 
